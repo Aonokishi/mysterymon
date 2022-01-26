@@ -49,6 +49,12 @@ function App() {
   const [gender, setGender] = React.useState();
   const question = questionList[questionIndex];
 
+  React.useEffect(() => {
+     const audio = new Audio('/music.mp3');
+     audio.loop = true;
+     audio.play();
+  }, [])
+
   function doAnswer(answer) {
     if (answer.points !== undefined) {
       const newPoints = {
@@ -71,7 +77,7 @@ function App() {
       };
       setPoints(newPoints);
     } else {
-      setGender(answer.textValue);  
+      setGender(answer.textValue);
     }
     setQuestionIndex(questionIndex + 1);
   }
@@ -88,13 +94,27 @@ function App() {
           ))}
           <p>Gender: {gender}</p>
         </div>
-        <div>Du bist ein basic: {getPokemon(getDominantTrait(points), gender)}</div>
+        <div>
+          {Object.entries(descriptions[getDominantTrait(points)]).map(
+            ([trait, value]) => (
+              <p>
+                {value.replace(
+                  /%s/,
+                  getPokemon(getDominantTrait(points), gender)
+                )}
+              </p>
+            )
+          )}
+        </div>
       </div>
     );
   }
 
+
+
   return (
     <div>
+
       <h2>{question.textValue}</h2>
       <div>
         {question.answers.map((answer) => (
