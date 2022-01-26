@@ -1,8 +1,7 @@
 import React from "react";
-import logo from "./logo.svg";
 import "./App.css";
 import finalQ from "./data/finalQuestions.json";
-import starters from "./data/pmd2TDQuestions.json";
+import starters from "./data/pmd2TDStarters.json";
 import questions from "./data/pmd2TDQuestions.json";
 import descriptions from "./data/pmd2Descriptions.json";
 
@@ -26,6 +25,23 @@ const initialPoints = {
   Rash: 0,
   Bold: 0,
 };
+
+function getDominantTrait(points) {
+  var highestVal = 0;
+  var highestTrait;
+
+  for (const [key, value] of Object.entries(points)) {
+    if (highestVal < value) {
+      highestVal = value;
+      highestTrait = key;
+    }
+  }
+  return highestTrait;
+}
+
+function getPokemon(trait, gender) {
+  return starters[trait][gender];
+}
 
 function App() {
   const [questionIndex, setQuestionIndex] = React.useState(0);
@@ -55,16 +71,15 @@ function App() {
       };
       setPoints(newPoints);
     } else {
-      setGender(answer.textValue);
+      setGender(answer.textValue);  
     }
-
     setQuestionIndex(questionIndex + 1);
   }
 
   if (questionIndex == questionList.length) {
     return (
       <div>
-        <div>Done</div>
+        <div>It's time to reveal your true form!</div>
         <div>
           {Object.entries(points).map(([trait, value]) => (
             <p>
@@ -73,6 +88,7 @@ function App() {
           ))}
           <p>Gender: {gender}</p>
         </div>
+        <div>Du bist ein basic: {getPokemon(getDominantTrait(points), gender)}</div>
       </div>
     );
   }

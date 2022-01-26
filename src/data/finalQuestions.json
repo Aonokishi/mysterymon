@@ -3,9 +3,9 @@
         "textValue": "Are you male or female?",
         "answers":
         [
-            { "textValue": "Male." },
-            { "textValue": "Female." },
-            { "textValue": "Neither." }
+            { "textValue": "Male" },
+            { "textValue": "Female" },
+            { "textValue": "Neither" }
         ]
     }
 ]
