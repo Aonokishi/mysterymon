@@ -4,7 +4,7 @@ import finalQ from "./data/finalQuestions.json";
 import starters from "./data/pmd2TDStarters.json";
 import questions from "./data/pmd2TDQuestions.json";
 import descriptions from "./data/pmd2Descriptions.json";
-import lodash from "lodash";
+import useGesture from "./useGesture";
 
 const questionList = questions.concat(finalQ);
 
@@ -48,79 +48,43 @@ function App() {
   const [questionIndex, setQuestionIndex] = React.useState(0);
   const [points, setPoints] = React.useState(initialPoints);
   const [gender, setGender] = React.useState();
-  const question = questionList[questionIndex];
   const [start, setStart] = React.useState(true);
 
-  React.useEffect(() => {
-    if (!window.DeviceOrientationEvent) {
-      alert("no sensor");
+  const { oldGesture, newGesture, reset } = useGesture();
+
+  const question = React.useMemo(
+    () => questionList[questionIndex],
+    [questionIndex]
+  );
+
+  const doAnswer = React.useCallback((answer) => {
+    if (!answer) {
       return;
     }
 
-    const handle = (event) => {
-      var leftOrRight = event.gamma;
-      var upOrDown = event.beta;
-      var threshold = 40;
-      
-      if(Math.abs(leftOrRight) > Math.abs(upOrDown)){
-        if (Math.abs(leftOrRight) < threshold){
-          return;
-        }
+    console.log("answering:", answer.textValue);
 
-        if( leftOrRight > 0){
-          console.log("Right")
-        } else{
-          console.log("Left")
-        }
-      } else {
-        if(Math.abs(upOrDown) < threshold){
-          return;
-        }
-        
-        if(upOrDown > 0){
-          console.log("Down")
-        } else{
-          console.log("UP")
-        }
-      }
-
-    };
-
-    const throttled = lodash.throttle(handle, 1000)
-
-    window.addEventListener("deviceorientation", throttled, true);
-
-    return () => window.removeEventListener("deviceorientation", throttled);
-    
-  }, []);
-
-  React.useEffect(() => {
-    const audio = new Audio("/music.mp3");
-    audio.loop = true;
-    audio.play();
-  }, [start]);
-
-  function doAnswer(answer) {
     if (answer.points !== undefined) {
-      const newPoints = {
-        Docile: points.Docile + (answer.points.Docile ?? 0),
-        Hardy: points.Hardy + (answer.points.Hardy ?? 0),
-        Jolly: points.Jolly + (answer.points.Jolly ?? 0),
-        Impish: points.Impish + (answer.points.Impish ?? 0),
-        Quirky: points.Quirky + (answer.points.Quirky ?? 0),
-        Relaxed: points.Relaxed + (answer.points.Relaxed ?? 0),
-        Brave: points.Brave + (answer.points.Brave ?? 0),
-        Lonely: points.Lonely + (answer.points.Lonely ?? 0),
-        Timid: points.Timid + (answer.points.Timid ?? 0),
-        Naive: points.Naive + (answer.points.Naive ?? 0),
-        Sassy: points.Sassy + (answer.points.Sassy ?? 0),
-        Hasty: points.Hasty + (answer.points.Hasty ?? 0),
-        Calm: points.Calm + (answer.points.Calm ?? 0),
-        Quiet: points.Quiet + (answer.points.Quiet ?? 0),
-        Rash: points.Rash + (answer.points.Rash ?? 0),
-        Bold: points.Bold + (answer.points.Bold ?? 0),
-      };
-      setPoints(newPoints);
+      setPoints((oldPoints) => {
+        return {
+          Docile: oldPoints.Docile + (answer.points.Docile ?? 0),
+          Hardy: oldPoints.Hardy + (answer.points.Hardy ?? 0),
+          Jolly: oldPoints.Jolly + (answer.points.Jolly ?? 0),
+          Impish: oldPoints.Impish + (answer.points.Impish ?? 0),
+          Quirky: oldPoints.Quirky + (answer.points.Quirky ?? 0),
+          Relaxed: oldPoints.Relaxed + (answer.points.Relaxed ?? 0),
+          Brave: oldPoints.Brave + (answer.points.Brave ?? 0),
+          Lonely: oldPoints.Lonely + (answer.points.Lonely ?? 0),
+          Timid: oldPoints.Timid + (answer.points.Timid ?? 0),
+          Naive: oldPoints.Naive + (answer.points.Naive ?? 0),
+          Sassy: oldPoints.Sassy + (answer.points.Sassy ?? 0),
+          Hasty: oldPoints.Hasty + (answer.points.Hasty ?? 0),
+          Calm: oldPoints.Calm + (answer.points.Calm ?? 0),
+          Quiet: oldPoints.Quiet + (answer.points.Quiet ?? 0),
+          Rash: oldPoints.Rash + (answer.points.Rash ?? 0),
+          Bold: oldPoints.Bold + (answer.points.Bold ?? 0),
+        };
+      });
     } else {
       var genderAns = answer.textValue;
       if (genderAns === "Neither") {
@@ -133,20 +97,55 @@ function App() {
       }
       setGender(genderAns);
     }
-    setQuestionIndex(questionIndex + 1);
-  }
+    setQuestionIndex((oldIndex) => oldIndex + 1);
+  }, []);
+
+  React.useEffect(() => {
+    if (oldGesture === newGesture) {
+      return;
+    }
+    if (oldGesture === "reset" || newGesture === "reset") {
+      return;
+    }
+    if (!question?.answers) {
+      return;
+    }
+    if (newGesture === "left") {
+      reset();
+      doAnswer(question.answers[0]);
+    }
+    if (newGesture === "right") {
+      reset();
+      doAnswer(question.answers[1]);
+    }
+    if (newGesture === "up") {
+      reset();
+      doAnswer(question.answers[3]);
+    }
+    if (newGesture === "down") {
+      reset();
+      doAnswer(question.answers[4]);
+    }
+  }, [question, oldGesture, newGesture, doAnswer, reset]);
+
+  React.useEffect(() => {
+    const audio = new Audio("/music.mp3");
+    audio.loop = true;
+    audio.play();
+    return () => audio.pause();
+  }, [start]);
 
   if (start) {
     return (
-      <div>
+      <>
         <button onClick={() => setStart(false)}>start</button>
-      </div>
+      </>
     );
   }
 
   if (questionIndex === questionList.length) {
     return (
-      <div className="wrapper">
+      <>
         <div className="end-screen">
           <h2>It's time to reveal your true form!</h2>
           <img
@@ -170,23 +169,27 @@ function App() {
             )}
           </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="wrapper">
+    <>
       <div className="answers">
-        {question.answers.map((answer) => (
-          <button className="answer" onClick={() => doAnswer(answer)}>
-            {answer.textValue}
-          </button>
-        ))}
+        {question.answers.map((answer, index) => {
+          const direction = index; // TODO: make pretty
+
+          return (
+            <button className="answer" onClick={() => doAnswer(answer)}>
+              {answer.textValue}
+            </button>
+          );
+        })}
       </div>
       <div className="question">
         <h2>{question.textValue}</h2>
       </div>
-    </div>
+    </>
   );
 }
 
