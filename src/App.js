@@ -4,6 +4,7 @@ import finalQ from "./data/finalQuestions.json";
 import starters from "./data/pmd2TDStarters.json";
 import questions from "./data/pmd2TDQuestions.json";
 import descriptions from "./data/pmd2Descriptions.json";
+import lodash from "lodash";
 
 const questionList = questions.concat(finalQ);
 
@@ -48,12 +49,56 @@ function App() {
   const [points, setPoints] = React.useState(initialPoints);
   const [gender, setGender] = React.useState();
   const question = questionList[questionIndex];
+  const [start, setStart] = React.useState(true);
 
   React.useEffect(() => {
-     const audio = new Audio('/music.mp3');
-     audio.loop = true;
-     audio.play();
-  }, [])
+    if (!window.DeviceOrientationEvent) {
+      alert("no sensor");
+      return;
+    }
+
+    const handle = (event) => {
+      var leftOrRight = event.gamma;
+      var upOrDown = event.beta;
+      var threshold = 40;
+      
+      if(Math.abs(leftOrRight) > Math.abs(upOrDown)){
+        if (Math.abs(leftOrRight) < threshold){
+          return;
+        }
+
+        if( leftOrRight > 0){
+          console.log("Right")
+        } else{
+          console.log("Left")
+        }
+      } else {
+        if(Math.abs(upOrDown) < threshold){
+          return;
+        }
+        
+        if(upOrDown > 0){
+          console.log("Down")
+        } else{
+          console.log("UP")
+        }
+      }
+
+    };
+
+    const throttled = lodash.throttle(handle, 1000)
+
+    window.addEventListener("deviceorientation", throttled, true);
+
+    return () => window.removeEventListener("deviceorientation", throttled);
+    
+  }, []);
+
+  React.useEffect(() => {
+    const audio = new Audio("/music.mp3");
+    audio.loop = true;
+    audio.play();
+  }, [start]);
 
   function doAnswer(answer) {
     if (answer.points !== undefined) {
@@ -77,57 +122,69 @@ function App() {
       };
       setPoints(newPoints);
     } else {
-      setGender(answer.textValue);
+      var genderAns = answer.textValue;
+      if (genderAns === "Neither") {
+        var rng = Math.floor(Math.random() * 2);
+        if (rng === 0) {
+          genderAns = "Female";
+        } else {
+          genderAns = "Male";
+        }
+      }
+      setGender(genderAns);
     }
     setQuestionIndex(questionIndex + 1);
   }
 
-  if (questionIndex == questionList.length) {
+  if (start) {
     return (
       <div>
-        <div>It's time to reveal your true form!</div>
-        <div>
-          {Object.entries(points).map(([trait, value]) => (
-            <p>
-              {trait}: {value}
-            </p>
-          ))}
-          <p>Gender: {gender}</p>
-        </div>
-        <div>
-          {Object.entries(descriptions[getDominantTrait(points)]).map(
-            ([trait, value]) => (
-              <p>
-                {value.replace(
-                  /%s/,
-                  getPokemon(getDominantTrait(points), gender)
-                )}
-              </p>
-            )
-          )}
+        <button onClick={() => setStart(false)}>start</button>
+      </div>
+    );
+  }
+
+  if (questionIndex === questionList.length) {
+    return (
+      <div className="wrapper">
+        <div className="end-screen">
+          <h2>It's time to reveal your true form!</h2>
+          <img
+            alt="pokemon"
+            src={
+              "/images/" +
+              getPokemon(getDominantTrait(points), gender) +
+              "-big.png"
+            }
+          ></img>
+          <div className="trait-text">
+            {Object.entries(descriptions[getDominantTrait(points)]).map(
+              ([trait, value]) => (
+                <p>
+                  {value.replace(
+                    /%s/,
+                    getPokemon(getDominantTrait(points), gender)
+                  )}
+                </p>
+              )
+            )}
+          </div>
         </div>
       </div>
     );
   }
 
-
-
   return (
-    <div>
-
-      <h2>{question.textValue}</h2>
-      <div>
+    <div className="wrapper">
+      <div className="answers">
         {question.answers.map((answer) => (
-          <button onClick={() => doAnswer(answer)}>{answer.textValue}</button>
+          <button className="answer" onClick={() => doAnswer(answer)}>
+            {answer.textValue}
+          </button>
         ))}
       </div>
-      <div>
-        {Object.entries(points).map(([trait, value]) => (
-          <p>
-            {trait}: {value}
-          </p>
-        ))}
-        <p>Gender: {gender}</p>
+      <div className="question">
+        <h2>{question.textValue}</h2>
       </div>
     </div>
   );
