@@ -6,7 +6,14 @@ import questions from "./data/pmd2TDQuestions.json";
 import descriptions from "./data/pmd2Descriptions.json";
 import useGesture from "./useGesture";
 
-const questionList = questions.concat(finalQ);
+const questionList = questions
+  .concat(finalQ)
+  .filter((q) => q.answers.length <= 3)
+  .slice(-20);
+
+const directions = ["←", "→", "↑", "↓"];
+
+const isMobile = navigator?.userAgentData?.mobile ?? false;
 
 const initialPoints = {
   Docile: 0,
@@ -50,6 +57,8 @@ function App() {
   const [gender, setGender] = React.useState();
   const [start, setStart] = React.useState(true);
 
+  const progess = (questionIndex / questionList.length) * 100;
+
   const { oldGesture, newGesture, reset } = useGesture();
 
   const question = React.useMemo(
@@ -63,6 +72,7 @@ function App() {
     }
 
     console.log("answering:", answer.textValue);
+    navigator.vibrate(100);
 
     if (answer.points !== undefined) {
       setPoints((oldPoints) => {
@@ -101,6 +111,7 @@ function App() {
   }, []);
 
   React.useEffect(() => {
+    console.log(oldGesture, newGesture);
     if (oldGesture === newGesture) {
       return;
     }
@@ -120,11 +131,11 @@ function App() {
     }
     if (newGesture === "up") {
       reset();
-      doAnswer(question.answers[3]);
+      doAnswer(question.answers[2]);
     }
     if (newGesture === "down") {
       reset();
-      doAnswer(question.answers[4]);
+      doAnswer(question.answers[3]);
     }
   }, [question, oldGesture, newGesture, doAnswer, reset]);
 
@@ -137,9 +148,12 @@ function App() {
 
   if (start) {
     return (
-      <>
-        <button onClick={() => setStart(false)}>start</button>
-      </>
+      <div className="start">
+        <img className="logo" src="/images/logo.png" />
+        <button className="start-button" onClick={() => setStart(false)}>
+          start
+        </button>
+      </div>
     );
   }
 
@@ -147,15 +161,16 @@ function App() {
     return (
       <>
         <div className="end-screen">
-          <h2>It's time to reveal your true form!</h2>
+          <h2 className="reveal-text">It's time to reveal your true form!</h2>
           <img
+            className="pokemon"
             alt="pokemon"
             src={
               "/images/" +
               getPokemon(getDominantTrait(points), gender) +
               "-big.png"
             }
-          ></img>
+          />
           <div className="trait-text">
             {Object.entries(descriptions[getDominantTrait(points)]).map(
               ([trait, value]) => (
@@ -168,6 +183,7 @@ function App() {
               )
             )}
           </div>
+          <button className="retry-button" onClick={() => window.location.href=window.location.href}>Retry</button>
         </div>
       </>
     );
@@ -175,13 +191,22 @@ function App() {
 
   return (
     <>
+      <div className="progress">
+        <div className="progress-bar" style={{ width: `${progess}%` }}></div>
+      </div>
       <div className="answers">
         {question.answers.map((answer, index) => {
-          const direction = index; // TODO: make pretty
+          const direction = directions[index % 4];
 
           return (
-            <button className="answer" onClick={() => doAnswer(answer)}>
-              {answer.textValue}
+            <button id={index} className="answer" onClick={() => doAnswer(answer)}>
+              {isMobile && (
+                <>
+                  <span>{direction}</span>
+                  <br />
+                </>
+              )}
+              <span>{answer.textValue}</span>
             </button>
           );
         })}

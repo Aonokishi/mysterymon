@@ -1,5 +1,4 @@
 import React from "react";
-import lodash from "lodash";
 
 function useGesture() {
   const [gestures, setGestures] = React.useState(["center", "center"]);
@@ -22,6 +21,27 @@ function useGesture() {
       if (Math.abs(leftOrRight) > Math.abs(upOrDown)) {
         if (Math.abs(leftOrRight) < threshold) {
           setGestures((oldValue) => [oldValue[1], "center"]);
+
+          if (leftOrRight > 0) {
+            //color changer
+            document.getElementById(1).style.backgroundColor =
+              "rgba(88, 78, 193, 0.75)";
+            document.getElementById(0).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(2).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(3).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+          } else {
+            document.getElementById(0).style.backgroundColor =
+              "rgba(88, 78, 193, 0.75)";
+            document.getElementById(1).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(2).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(3).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+          }
           return;
         }
 
@@ -35,6 +55,25 @@ function useGesture() {
       } else {
         if (Math.abs(upOrDown) < threshold) {
           setGestures((oldValue) => [oldValue[1], "center"]);
+          if (upOrDown > 0) {
+            document.getElementById(3).style.backgroundColor =
+              "rgba(88, 78, 193, 0.75)";
+            document.getElementById(0).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(2).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(1).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+          } else {
+            document.getElementById(2).style.backgroundColor =
+              "rgba(88, 78, 193, 0.75)";
+            document.getElementById(0).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(1).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+            document.getElementById(3).style.backgroundColor =
+              "rgba(0, 0, 0, 0.15)";
+          }
           return;
         }
 
@@ -48,11 +87,9 @@ function useGesture() {
       }
     };
 
-    const throttled = lodash.debounce(handle, 1000, { maxWait: 2000 });
+    window.addEventListener("deviceorientation", handle, true);
 
-    window.addEventListener("deviceorientation", throttled, true);
-
-    return () => window.removeEventListener("deviceorientation", throttled);
+    return () => window.removeEventListener("deviceorientation", handle);
   }, []);
 
   return { oldGesture: gestures[0], newGesture: gestures[1], reset };
