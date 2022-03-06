@@ -8,8 +8,7 @@ import useGesture from "./useGesture";
 
 const questionList = questions
   .concat(finalQ)
-  .filter((q) => q.answers.length <= 3)
-  .slice(-20);
+  .filter((q) => q.answers.length <= 3);
 
 const directions = ["←", "→", "↑", "↓"];
 
