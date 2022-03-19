@@ -8,7 +8,8 @@ import useGesture from "./useGesture";
 
 const questionList = questions
   .concat(finalQ)
-  .filter((q) => q.answers.length <= 3);
+  .filter((q) => q.answers.length <= 3)
+  .slice(-30);
 
 const directions = ["←", "→", "↑", "↓"];
 
@@ -148,7 +149,7 @@ function App() {
   if (start) {
     return (
       <div className="start">
-        <img className="logo" src="/images/logo.png" />
+        <img className="logo" src="/logo.png" />
         <button className="start-button" onClick={() => setStart(false)}>
           start
         </button>
@@ -165,7 +166,6 @@ function App() {
             className="pokemon"
             alt="pokemon"
             src={
-              "/images/" +
               getPokemon(getDominantTrait(points), gender) +
               "-big.png"
             }
