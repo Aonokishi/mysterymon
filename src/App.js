@@ -140,7 +140,7 @@ function App() {
   }, [question, oldGesture, newGesture, doAnswer, reset]);
 
   React.useEffect(() => {
-    const audio = new Audio("/music.mp3");
+    const audio = new Audio("./music.mp3");
     audio.loop = true;
     audio.play();
     return () => audio.pause();
@@ -149,7 +149,7 @@ function App() {
   if (start) {
     return (
       <div className="start">
-        <img className="logo" src="/logo.png" />
+        <img className="logo" src="./logo.png" />
         <button className="start-button" onClick={() => setStart(false)}>
           start
         </button>
@@ -158,6 +158,7 @@ function App() {
   }
 
   if (questionIndex === questionList.length) {
+    const src = `./${getPokemon(getDominantTrait(points), gender)}-big.png`;
     return (
       <>
         <div className="end-screen">
@@ -165,10 +166,7 @@ function App() {
           <img
             className="pokemon"
             alt="pokemon"
-            src={
-              getPokemon(getDominantTrait(points), gender) +
-              "-big.png"
-            }
+            src={src}
           />
           <div className="trait-text">
             {Object.entries(descriptions[getDominantTrait(points)]).map(
